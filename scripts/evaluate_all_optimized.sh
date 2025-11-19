@@ -25,7 +25,15 @@ echo "5. Evaluating PatchTST..."
 python src/evaluate.py --config configs/patchtst.yaml
 
 echo ""
-echo "6. Evaluating Ensemble (with optimized weights)..."
+echo "6. Evaluating SimpleTransformer..."
+python src/evaluate.py --config configs/simple_transformer.yaml
+
+echo ""
+echo "7. Evaluating Transformer..."
+python src/evaluate.py --config configs/transformer.yaml
+
+echo ""
+echo "8. Evaluating Ensemble (with optimized weights)..."
 python src/ensemble.py --config configs/lstm.yaml --models lstm gru patchtst --method weighted
 
 echo ""

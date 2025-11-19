@@ -25,5 +25,13 @@ echo "5. Training PatchTST..."
 python src/train.py --config configs/patchtst.yaml
 
 echo ""
+echo "6. Training SimpleTransformer..."
+python src/train.py --config configs/simple_transformer.yaml
+
+echo ""
+echo "7. Training Transformer..."
+python src/train.py --config configs/transformer.yaml
+
+echo ""
 echo "=== Training Complete ==="
 

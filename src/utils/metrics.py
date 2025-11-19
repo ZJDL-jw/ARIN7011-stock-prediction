@@ -20,13 +20,25 @@ def find_optimal_threshold(y_true: np.ndarray, y_pred: np.ndarray, metric='f1') 
     if len(np.unique(y_true)) < 2:
         return 0.5
     
-    # Try thresholds from 0.1 to 0.9
-    thresholds = np.linspace(0.1, 0.9, 81)
+    # Use more reasonable threshold range: 0.3 to 0.7 (avoid extreme thresholds)
+    # This prevents all models from predicting the same class
+    thresholds = np.linspace(0.3, 0.7, 41)
     best_threshold = 0.5
     best_score = -1
     
+    # Also check if using median of predictions gives better balance
+    median_pred = np.median(y_pred)
+    if 0.3 <= median_pred <= 0.7:
+        thresholds = np.concatenate([thresholds, [median_pred]])
+    
     for threshold in thresholds:
         y_pred_binary = (y_pred > threshold).astype(int)
+        
+        # Check if predictions are balanced (not all 0 or all 1)
+        unique_pred = np.unique(y_pred_binary)
+        if len(unique_pred) < 2:
+            continue  # Skip if all predictions are the same
+        
         if metric == 'f1':
             try:
                 score = f1_score(y_true, y_pred_binary)
@@ -38,6 +50,14 @@ def find_optimal_threshold(y_true: np.ndarray, y_pred: np.ndarray, metric='f1') 
         if score > best_score:
             best_score = score
             best_threshold = threshold
+    
+    # If no good threshold found, use median of predictions or 0.5
+    if best_score <= 0:
+        median_pred = np.median(y_pred)
+        if 0.3 <= median_pred <= 0.7:
+            best_threshold = median_pred
+        else:
+            best_threshold = 0.5
     
     return best_threshold
 

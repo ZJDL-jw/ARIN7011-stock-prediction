@@ -16,6 +16,8 @@ from src.models.lstm import LSTM
 from src.models.gru import GRU
 from src.models.cnn1d import CNN1D
 from src.models.patchtst import PatchTST
+from src.models.simple_transformer import SimpleTransformer
+from src.models.transformer import Transformer
 from src.models.common.losses import MultiTaskLoss
 
 
@@ -97,6 +99,27 @@ def create_model(config: dict, input_dim: int, horizons: list, quantiles: list):
             stride=config['patchtst']['stride'],
             dropout=config['patchtst']['dropout'],
             channel_independent=config['patchtst']['channel_independent']
+        )
+    elif model_name == 'simple_transformer':
+        model = SimpleTransformer(
+            input_dim=input_dim,
+            horizons=horizons,
+            quantiles=quantiles,
+            d_model=config['simple_transformer']['d_model'],
+            n_heads=config['simple_transformer']['n_heads'],
+            depth=config['simple_transformer']['depth'],
+            dropout=config['simple_transformer']['dropout']
+        )
+    elif model_name == 'transformer':
+        model = Transformer(
+            input_dim=input_dim,
+            horizons=horizons,
+            quantiles=quantiles,
+            d_model=config['transformer']['d_model'],
+            n_heads=config['transformer']['n_heads'],
+            depth=config['transformer']['depth'],
+            d_ff=config['transformer'].get('d_ff', None),
+            dropout=config['transformer']['dropout']
         )
     else:
         raise ValueError(f"Unknown model: {model_name}")

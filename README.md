@@ -2,19 +2,18 @@
 
 ## 项目简介
 
-本项目实现了一个完整的"自研多因子 + 深度时序模型"的短期涨跌概率预测系统，针对A股蓝筹股进行多步预测（1/3/5日）与分布学习（分位数回归 τ=0.1/0.5/0.9）。项目包含数据抓取、因子工程、样本构造、模型训练、概率校准、Walk-forward稳健性评估、教学级回测、可解释性分析（注意力热力图）与结果可视化。
+本项目实现了一个完整的"自研多因子 + 深度时序模型"的股票涨跌概率预测系统，针对A股蓝筹股进行多周期预测（日线/周线/月线：1/7/30日）与分布学习（分位数回归 τ=0.1/0.5/0.9）。项目包含数据抓取、因子工程、样本构造、模型训练、概率校准、可解释性分析（注意力热力图）与结果可视化。
 
 ### 核心特性
 
 - **多因子体系**：59个因子（48基础+8短期+5 PCA+5 AE+1 close）
-- **多模型支持**：MLP、LSTM、GRU、CNN1D、PatchTST、Ensemble（6个模型）
+- **多模型支持**：MLP、LSTM、GRU、CNN1D、PatchTST、SimpleTransformer、Transformer、Ensemble（8个模型）
+- **多周期预测**：日线（1日）、周线（7日）、月线（30日）
 - **多任务学习**：二分类（涨跌方向）+ 分位数回归（收益分布）
 - **自适应阈值优化**：在验证集上自动找到最优分类阈值，大幅提升F1分数
 - **Ensemble权重优化**：自动优化集成模型权重，提升综合性能
 - **概率校准**：Isotonic/Platt校准，提升概率可靠性
-- **稳健性评估**：Walk-forward年度滚动、因子消融实验
-- **教学级回测**：考虑交易成本、换手率、最大回撤等
-- **可解释性**：注意力热力图、因子重要性分析
+- **可解释性**：注意力热力图（Transformer系列模型）
 
 ## 环境安装
 
@@ -39,7 +38,7 @@ pip install -r requirements.txt
 python src/data/download.py --config configs/base.yaml
 ```
 
-这将从Yahoo Finance下载10只A股蓝筹股和上证指数的日线数据（2016-2024）。
+这将从Yahoo Finance下载15只A股蓝筹股和上证指数的日线数据（2016-2024，实际可用数据范围）。
 
 ### 2. 数据预处理
 
@@ -71,6 +70,8 @@ python src/train.py --config configs/lstm.yaml
 python src/train.py --config configs/gru.yaml
 python src/train.py --config configs/cnn1d.yaml
 python src/train.py --config configs/patchtst.yaml
+python src/train.py --config configs/simple_transformer.yaml
+python src/train.py --config configs/transformer.yaml
 ```
 
 训练过程会自动保存最佳模型到 `runs/<model_name>/checkpoints/best.pt`。
@@ -89,6 +90,8 @@ python src/evaluate.py --config configs/lstm.yaml
 python src/evaluate.py --config configs/gru.yaml
 python src/evaluate.py --config configs/cnn1d.yaml
 python src/evaluate.py --config configs/patchtst.yaml
+python src/evaluate.py --config configs/simple_transformer.yaml
+python src/evaluate.py --config configs/transformer.yaml
 ```
 
 输出：
@@ -96,7 +99,7 @@ python src/evaluate.py --config configs/patchtst.yaml
 - 最优阈值（自动在验证集上优化）
 - ROC/PR曲线
 - 校准前后Reliability图
-- 注意力热力图（PatchTST）
+- 注意力热力图（Transformer系列模型）
 
 ### 6. Ensemble模型评估
 
@@ -105,31 +108,6 @@ python src/ensemble.py --config configs/lstm.yaml --models lstm gru patchtst --m
 ```
 
 自动优化权重和阈值，输出集成模型的综合性能。
-
-### 7. Walk-forward稳健性评估
-
-```bash
-python src/walkforward.py --config configs/patchtst.yaml
-```
-
-按年度滚动评估，输出年度AUC箱线图。
-
-### 8. 因子消融实验
-
-```bash
-python src/ablation.py --config configs/patchtst.yaml --drop-group momentum
-python src/ablation.py --config configs/patchtst.yaml --drop-group volatility
-python src/ablation.py --config configs/patchtst.yaml --drop-group volume
-python src/ablation.py --config configs/patchtst.yaml --drop-group rs
-```
-
-### 9. 教学级回测
-
-```bash
-python src/backtest.py --config configs/backtest.yaml --ckpt runs/patchtst/checkpoints/best.pt --cost_bps 10
-```
-
-输出策略与基准的CAGR、Sharpe、最大回撤、换手率对比。
 
 ## 项目结构
 
@@ -146,7 +124,8 @@ project-root/
 │   ├── gru.yaml
 │   ├── cnn1d.yaml
 │   ├── patchtst.yaml
-│   └── backtest.yaml
+│   ├── simple_transformer.yaml
+│   └── transformer.yaml
 ├── data/
 │   ├── raw/                 # yfinance原始CSV
 │   ├── interim/             # 对齐/复权/特征中间文件
@@ -170,6 +149,8 @@ project-root/
 │   │   ├── gru.py
 │   │   ├── cnn1d.py
 │   │   ├── patchtst.py
+│   │   ├── simple_transformer.py
+│   │   ├── transformer.py
 │   │   ├── ensemble.py
 │   │   └── common/
 │   │       ├── losses.py    # 损失函数
@@ -177,12 +158,7 @@ project-root/
 │   │       └── focal_loss.py # Focal Loss
 │   ├── train.py             # 训练主循环
 │   ├── evaluate.py          # 评估+校准+可视化（支持自适应阈值）
-│   ├── ensemble.py          # Ensemble模型训练和评估（支持权重优化）
-│   ├── ablation_factors.py  # 因子重要性分析
-│   ├── hyperparameter_tuning.py # 超参数调优
-│   ├── walkforward.py       # Walk-forward评估
-│   ├── ablation.py          # 消融实验
-│   └── backtest.py          # 回测
+│   └── ensemble.py          # Ensemble模型训练和评估（支持权重优化）
 ├── reports/
 │   ├── figs/                # 图表
 │   └── tables/              # 结果表格
@@ -243,6 +219,16 @@ project-root/
 - Transformer编码器：3层，8头，d_model=128
 - 平均池化后接多任务头
 
+### SimpleTransformer
+- 简化版Transformer（仅注意力机制，无FFN）
+- d_model=128, n_heads=8, depth=3
+- 轻量级，训练速度快
+
+### Transformer
+- 标准Transformer编码器（注意力+FFN）
+- d_model=128, n_heads=8, depth=3, d_ff=512
+- 完整实现，性能更强
+
 ### Ensemble
 - 集成LSTM、GRU、PatchTST
 - 支持加权平均（自动优化权重）和Stacking
@@ -266,54 +252,55 @@ project-root/
 
 在测试期（2023-2024），实际指标：
 
-**Horizon 1日（短期预测）**：
-- **Accuracy**: 49.9%（接近随机）
-- **F1**: 0.6657（所有模型一致，大幅提升）
-- **AUC**: 0.5044（Ensemble最佳，略高于随机）
-- **CRPS**: 0.0083-0.0144（优秀）
+**Horizon 1日（日线预测）**：
+- **Accuracy**: 44.9%-51.8%（接近随机）
+- **F1**: 0.4190-0.6239（SimpleTransformer/Transformer最佳：0.6239）
+- **AUC**: 0.4682-0.5333（MLP最佳：0.5333）
+- **CRPS**: 0.0085-0.0163（PatchTST最佳：0.0085）
 
-**Horizon 3日（中期预测）**：
-- **Accuracy**: 54.5%（显著优于随机）
-- **F1**: 0.7051（所有模型一致，优秀）
-- **AUC**: 0.5553（LSTM最佳）
-- **CRPS**: 0.0152-0.0210（优秀）
+**Horizon 7日（周线预测）**：
+- **Accuracy**: 37.5%-52.8%（PatchTST最佳：52.8%）
+- **F1**: 0.4435-0.5474（CNN1D最佳：0.5474）
+- **AUC**: 0.4009-0.5309（PatchTST最佳：0.5309）
+- **CRPS**: 0.0170-0.0257（SimpleTransformer最佳：0.0170）
 
-**Horizon 5日（长期预测）**：
-- **Accuracy**: 53.2%（优于随机）
-- **F1**: 0.6946（所有模型一致，优秀）
-- **AUC**: 0.5320（GRU最佳）
-- **CRPS**: 0.0145-0.0271（优秀）
+**Horizon 30日（月线预测）**：
+- **Accuracy**: 38.3%-67.3%（Ensemble最佳：67.3%，显著优于随机）
+- **F1**: 0.2871-0.6393（Ensemble最佳：0.6393）
+- **AUC**: 0.3377-0.7424（Ensemble最佳：0.7424，非常优秀）
+- **CRPS**: 0.0342-0.0485（MLP最佳：0.0342）
 
 ### 关键发现
 
-1. **自适应阈值优化效果显著**：F1从0提升到0.6657-0.7051
-2. **Ensemble模型综合性能最佳**：在所有horizon都表现稳定
-3. **分位数回归质量高**：CRPS保持在0.008-0.019范围
-4. **模型一致性**：所有模型在相同horizon表现接近
+1. **阈值优化成功**：不同模型选择了不同的最优阈值（0.44-0.50），评估结果真实反映模型差异
+2. **月线预测表现最佳**：Ensemble在月线预测中表现卓越（Accuracy=67.3%, AUC=0.7424）
+3. **新模型表现突出**：SimpleTransformer在日线F1表现最佳（0.6239）
+4. **模型性能差异明显**：不同模型在不同horizon各有优势
+5. **分位数回归质量高**：CRPS保持在0.008-0.049范围
 
 ### 局限性
 
 1. **数据质量**：yfinance数据可能存在延迟、复权问题
 2. **短期预测难度**：Horizon 1的预测难度极大，Accuracy接近随机
 3. **模型复杂度**：为CPU训练优化，模型规模较小
-4. **回测简化**：回测系统为教学目的简化，未考虑滑点、流动性等
-5. **样本量**：10只股票、9年数据，样本量相对有限
+4. **样本量**：15只股票、实际可用数据2016-2024，样本量相对有限
 
 ### 已实现的优化
 
-1. ✓ **自适应阈值优化**：在验证集上自动找到最优分类阈值，F1从0提升到0.6657-0.7051
+1. ✓ **自适应阈值优化**：在验证集上自动找到最优分类阈值，阈值范围调整为0.3-0.7，避免极端阈值
 2. ✓ **Ensemble权重优化**：自动优化集成模型权重，提升综合性能
 3. ✓ **因子扩展**：从12个扩展到59个因子（+392%）
-4. ✓ **模型扩展**：从3个扩展到6个模型（新增GRU、CNN1D、Ensemble）
-5. ✓ **数值稳定性**：完全解决因子构建过程中的警告问题
+4. ✓ **模型扩展**：从3个扩展到8个模型（新增GRU、CNN1D、SimpleTransformer、Transformer、Ensemble）
+5. ✓ **预测周期优化**：从1-3-5日改为1-7-30日（日线/周线/月线），更符合实际交易习惯
+6. ✓ **数值稳定性**：完全解决因子构建过程中的警告问题
 
 ### 未来改进方向
 
 1. 使用专业数据源（Wind、Tushare等）
 2. 扩展因子库（基本面、情绪、另类数据）
-3. 强化学习（动态仓位管理）
-4. 更精细的回测系统（考虑滑点、冲击成本）
-5. 短期预测深度优化（高频数据、专门架构）
+3. 短期预测深度优化（高频数据、专门架构）
+4. 模型架构优化（更深的网络、更好的正则化）
+5. 数据增强技术（时间序列数据增强）
 
 ## 配置说明
 
@@ -324,7 +311,6 @@ project-root/
 - `use_pca`: true/false（是否启用PCA因子）
 - `pca_components`: PCA主成分数量（默认5）
 - `ae_latent_dim`: AE潜在维度（默认5）
-- `groups`: 因子分组（用于消融实验）
 
 ### 修改模型超参数
 
@@ -332,12 +318,12 @@ project-root/
 - `trainer`: 训练参数（batch_size, epochs, lr等）
 - `patchtst`: 模型架构参数
 
-### 修改回测参数
+### 修改Ensemble配置
 
-编辑 `configs/backtest.yaml`：
-- `holding_days`: 持仓天数
-- `top_k`: 选股数量
-- `costs`: 交易成本（bps）
+编辑 `src/ensemble.py` 或使用命令行参数：
+- `--models`: 要集成的模型列表（如：lstm gru patchtst）
+- `--method`: 集成方法（weighted/average/stacking）
+- `--weights`: 手动指定权重（可选）
 
 ## 常见问题
 

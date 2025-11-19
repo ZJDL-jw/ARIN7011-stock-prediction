@@ -36,14 +36,19 @@ def compute_labels(df: pd.DataFrame, horizons: list, quantiles: list) -> Dict:
         forward_ret = log_returns.rolling(window=h).sum().shift(-h)
         
         # Improved classification: use adaptive threshold based on percentile
-        # For Horizon 1, use a more aggressive threshold to improve signal quality
+        # Different thresholds for different horizons (日线/周线/月线)
         if h == 1:
-            # For short-term, use 55th percentile to get more balanced classes
+            # 日线：使用55th百分位数，更平衡的类别
             percentile_threshold = forward_ret.quantile(0.55)
             median_threshold = forward_ret.median()
             threshold = percentile_threshold if not np.isnan(percentile_threshold) else median_threshold
-        else:
-            # For longer horizons, use 60th percentile
+        elif h == 7:
+            # 周线：使用60th百分位数
+            percentile_threshold = forward_ret.quantile(0.6)
+            median_threshold = forward_ret.median()
+            threshold = percentile_threshold if not np.isnan(percentile_threshold) else median_threshold
+        else:  # h == 30 (月线)
+            # 月线：使用60th百分位数
             percentile_threshold = forward_ret.quantile(0.6)
             median_threshold = forward_ret.median()
             threshold = percentile_threshold if not np.isnan(percentile_threshold) else median_threshold

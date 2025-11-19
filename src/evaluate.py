@@ -260,8 +260,8 @@ def main():
                 title=f"Reliability Diagram (Horizon {h}, After Calibration)"
             )
     
-    # Attention visualization (for PatchTST)
-    if config['model'] == 'patchtst':
+    # Attention visualization (for Transformer models)
+    if config['model'] in ['patchtst', 'simple_transformer', 'transformer']:
         print("Extracting attention weights...")
         model.eval()
         sample_batch = next(iter(test_loader))
