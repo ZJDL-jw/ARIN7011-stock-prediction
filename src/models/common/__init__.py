@@ -1,0 +1,2 @@
+"""Common model components."""
+

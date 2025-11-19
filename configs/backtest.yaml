@@ -1,0 +1,17 @@
+base_config: "configs/base.yaml"
+factors_config: "configs/factors.yaml"
+
+holding_days: 1
+top_k: 3
+position_mode: "equal"  # or "prob_weighted"
+
+constraints:
+  max_weight_per_stock: 0.5
+  max_weight_per_sector: 0.7
+
+costs:
+  fee_bps: 10
+  stamp_duty_sell_bps: 10
+
+benchmark: "equal_weight"
+

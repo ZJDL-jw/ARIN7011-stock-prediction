@@ -1,0 +1,16 @@
+# Representation learning factors
+use_pca: true
+use_autoencoder: true
+pca_components: 5
+ae_latent_dim: 5
+representation_window: 60
+
+# Factor groups for ablation studies
+groups:
+  momentum: ["ret_1", "ret_5", "ret_10", "ret_20", "rev_1", "bias_ma5", "bias_ma10", "bias_ma20", "rsi14", "rsi21", "macd_hist", "stoch_k", "williams_r", "cci", "adx", "roc", "momentum"]
+  volatility: ["ATR14", "ATR21", "volsigma_10", "volsigma_20", "volsigma_30", "bb_bw20", "bb_bw30", "vol_ratio_10_20", "vol_ratio_20_60", "vol_ratio_10_60", "trend_strength"]
+  volume: ["vol_ma_ratio5", "vol_ma_ratio10", "vol_ma_ratio20", "turnover", "obv", "mfi"]
+  price: ["price_position_20", "ema_ratio_12_26", "ema_ratio_26_50", "ema_ratio_12_50"]
+  rs: ["rs_index_1", "rs_index_5", "rs_index_10"]
+  representation: ["pca_1", "pca_2", "pca_3", "pca_4", "pca_5", "ae_1", "ae_2", "ae_3", "ae_4", "ae_5"]
+

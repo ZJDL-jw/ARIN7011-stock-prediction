@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Data
+data/raw/
+data/interim/
+data/processed/
+*.csv
+*.npz
+*.npy
+
+# Models and runs (keep structure, exclude large files)
+runs/*/checkpoints/
+runs/*/logs.json
+# *.pt  # Commented out - will exclude manually if needed
+# *.pth
+# *.pkl
+
+# Reports (keep summary and comparison table, exclude individual metrics)
+reports/tables/*_test_metrics.csv
+!reports/tables/all_models_comparison.csv
+!reports/SUMMARY.txt
+# Keep figures directory structure but exclude large PNG files if needed
+# reports/figs/*.png
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Logs
+*.log
+
