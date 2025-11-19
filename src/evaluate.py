@@ -127,7 +127,7 @@ def main():
     if args.ckpt:
         ckpt_path = args.ckpt
     else:
-        output_dir = Path(config.get('output_dir', 'runs')) / config.get('model', 'mlp')
+        output_dir = Path(config.get('output_dir', f"runs/{config.get('model', 'mlp')}"))
         ckpt_path = output_dir / 'checkpoints' / 'best.pt'
     
     if Path(ckpt_path).exists():
@@ -218,7 +218,7 @@ def main():
             print(f"  Brier (after): {metrics_cal[f'h{h}']['brier']:.4f}")
     
     # Save metrics
-    output_dir = Path(config.get('output_dir', 'runs')) / config.get('model', 'mlp')
+    output_dir = Path(config.get('output_dir', f"runs/{config.get('model', 'mlp')}"))
     reports_dir = Path('reports/tables')
     reports_dir.mkdir(parents=True, exist_ok=True)
     

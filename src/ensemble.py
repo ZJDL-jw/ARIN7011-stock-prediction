@@ -37,7 +37,7 @@ def load_trained_models(config: dict, model_names: list, input_dim: int,
         
         # Load checkpoint
         output_dir = Path(model_config.get('output_dir', f'runs/{model_name}'))
-        ckpt_path = output_dir / model_name / 'checkpoints' / 'best.pt'
+        ckpt_path = output_dir / 'checkpoints' / 'best.pt'
         
         if ckpt_path.exists():
             model.load_state_dict(torch.load(ckpt_path, map_location=device))

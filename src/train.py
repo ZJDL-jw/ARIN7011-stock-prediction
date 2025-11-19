@@ -267,7 +267,7 @@ def main():
         scheduler = None
     
     # Training loop
-    output_dir = Path(config.get('output_dir', 'runs')) / config['model']
+    output_dir = Path(config.get('output_dir', f"runs/{config['model']}"))
     ensure_dir(str(output_dir))
     checkpoint_dir = output_dir / 'checkpoints'
     ensure_dir(str(checkpoint_dir))

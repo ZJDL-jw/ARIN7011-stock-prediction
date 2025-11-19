@@ -16,7 +16,7 @@ def compute_labels(df: pd.DataFrame, horizons: list, quantiles: list) -> Dict:
     
     Args:
         df: DataFrame with 'close' column
-        horizons: List of prediction horizons (e.g., [1, 3, 5])
+        horizons: List of prediction horizons (e.g., [1, 7, 30])
         quantiles: List of quantile levels (e.g., [0.1, 0.5, 0.9])
     
     Returns:
