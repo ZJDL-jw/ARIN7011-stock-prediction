@@ -37,7 +37,7 @@ pip install -r requirements.txt
 ### 1. 数据下载
 
 ```bash
-python src/data/download.py --config configs/base.yaml
+python -m src.data.download --config configs/base.yaml
 ```
 
 这将从Yahoo Finance下载15只A股蓝筹股和上证指数的日线数据（1994-2024，总跨度30年，脚本会自动裁剪到可用区间）。
@@ -45,7 +45,7 @@ python src/data/download.py --config configs/base.yaml
 ### 2. 数据预处理
 
 ```bash
-python src/data/preprocess.py --config configs/base.yaml --factors configs/factors.yaml
+python -m src.data.preprocess --config configs/base.yaml --factors configs/factors.yaml
 ```
 
 执行复权对齐、winsorization（1%-99%）、滚动标准化（窗口252日）。
@@ -53,7 +53,7 @@ python src/data/preprocess.py --config configs/base.yaml --factors configs/facto
 ### 3. 因子工程与样本构造
 
 ```bash
-python src/data/dataset.py --build --config configs/base.yaml --factors configs/factors.yaml
+python -m src.data.dataset --build --config configs/base.yaml --factors configs/factors.yaml
 ```
 
 计算59个因子（48基础+8短期+5 PCA+5 AE），构造滑动窗口样本（T=60）。
