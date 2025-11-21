@@ -255,8 +255,11 @@ def build_dataset(config: dict):
         # This is a limitation - in production we'd ensure close is available
         factor_df['close'] = 100.0
     else:
-        # Fill NaN with forward fill then backward fill
-        factor_df['close'] = factor_df.groupby('ticker')['close'].fillna(method='ffill').fillna(method='bfill')
+        # Fill NaN with forward/backward fill per ticker without reindex issues
+        factor_df['close'] = (
+            factor_df.groupby('ticker')['close']
+            .transform(lambda s: s.ffill().bfill())
+        )
         factor_df['close'] = factor_df['close'].fillna(100.0)
     
     # Build sliding windows
